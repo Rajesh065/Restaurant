@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Role } from "@/types/dineease";
 import { ROLE_HOME, ROLE_LABELS } from "@/types/dineease";
 import { resetStore } from "@/lib/store";
@@ -40,6 +40,25 @@ export default function Navbar() {
     getServerSessionSnapshot
   );
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuOpen]);
 
   const links = user ? NAV_LINKS[user.role] : [{ href: "/", label: "Browse" }];
   const homeHref = user ? ROLE_HOME[user.role] : "/";
@@ -96,7 +115,7 @@ export default function Navbar() {
                 Sign In
               </Link>
             ) : (
-              <div className="relative">
+              <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-1.5 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-colors"
