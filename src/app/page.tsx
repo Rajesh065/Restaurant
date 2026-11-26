@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loadStore } from "@/lib/store";
 import RoleGuard from "@/components/RoleGuard";
-import type { Restaurant, CuisineType, PriceTier, SeatingSection } from "@/types/dineease";
+import type { Restaurant, Table, CuisineType, PriceTier, SeatingSection } from "@/types/dineease";
 
 const CITIES = ["All Cities", "Mumbai", "Delhi", "Bangalore"];
 const CUISINES: (CuisineType | "All")[] = [
@@ -48,6 +48,10 @@ export default function HomePage() {
     if (typeof window === "undefined") return [];
     return loadStore().restaurants;
   });
+  const [tables, setTables] = useState<Table[]>(() => {
+    if (typeof window === "undefined") return [];
+    return loadStore().tables;
+  });
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All Cities");
   const [cuisine, setCuisine] = useState<CuisineType | "All">("All");
@@ -59,7 +63,9 @@ export default function HomePage() {
 
   useEffect(() => {
     function handleRoleChange() {
-      setRestaurants(loadStore().restaurants);
+      const store = loadStore();
+      setRestaurants(store.restaurants);
+      setTables(store.tables);
     }
     window.addEventListener("dineease_role_change", handleRoleChange);
     return () => window.removeEventListener("dineease_role_change", handleRoleChange);
@@ -82,6 +88,16 @@ export default function HomePage() {
     if (cuisine !== "All" && r.cuisine !== cuisine) return false;
     if (priceTier !== "All" && r.priceTier !== priceTier) return false;
     if (vegOnly && !r.hasVegOptions) return false;
+    if (section !== "All" || partySize > 0) {
+      const hasMatchingTable = tables.some(
+        (t) =>
+          t.restaurantId === r.id &&
+          t.status !== "Unavailable" &&
+          (section === "All" || t.section === section) &&
+          (partySize <= 0 || t.capacity >= partySize)
+      );
+      if (!hasMatchingTable) return false;
+    }
     return true;
   });
 
