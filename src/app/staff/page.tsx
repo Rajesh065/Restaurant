@@ -48,6 +48,7 @@ function StaffContent() {
   const [activeTab, setActiveTab] = useState<"reservations" | "tables" | "walkin">("reservations");
   const [dateFilter, setDateFilter] = useState(today());
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | "All">("All");
+  const [guestSearch, setGuestSearch] = useState("");
   const [statusError, setStatusError] = useState<string | null>(null);
 
   // Walk-in form
@@ -65,6 +66,12 @@ function StaffContent() {
   const filteredReservations = allReservations.filter((r) => {
     if (dateFilter && r.date !== dateFilter) return false;
     if (statusFilter !== "All" && r.status !== statusFilter) return false;
+    if (guestSearch.trim()) {
+      const q = guestSearch.toLowerCase();
+      if (!r.guestName.toLowerCase().includes(q) && !r.id.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -210,6 +217,16 @@ function StaffContent() {
                   (s) => <option key={s}>{s}</option>
                 )}
               </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1 font-medium">Search Guest / Ref</label>
+              <input
+                type="text"
+                placeholder="Guest name or BK-…"
+                value={guestSearch}
+                onChange={(e) => setGuestSearch(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
             </div>
             <div className="flex items-end">
               <span className="text-sm text-gray-500">
