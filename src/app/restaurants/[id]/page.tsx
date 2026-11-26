@@ -185,6 +185,14 @@ function RestaurantContent() {
             </div>
           </div>
           <p className="mt-4 text-sm text-gray-600 leading-relaxed">{restaurant.description}</p>
+          <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-4 text-xs text-gray-500">
+            <a href={`tel:${restaurant.phone}`} className="hover:text-orange-600 transition-colors">
+              📞 {restaurant.phone}
+            </a>
+            <a href={`mailto:${restaurant.email}`} className="hover:text-orange-600 transition-colors">
+              ✉️ {restaurant.email}
+            </a>
+          </div>
         </div>
       </div>
 
