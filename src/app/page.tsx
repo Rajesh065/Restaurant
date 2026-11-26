@@ -55,6 +55,7 @@ export default function HomePage() {
   const [vegOnly, setVegOnly] = useState(false);
   const [partySize, setPartySize] = useState(0);
   const [section, setSection] = useState<SeatingSection | "All">("All");
+  const [sortBy, setSortBy] = useState<"rating" | "reviews" | "name">("rating");
 
   useEffect(() => {
     function handleRoleChange() {
@@ -82,6 +83,12 @@ export default function HomePage() {
     if (priceTier !== "All" && r.priceTier !== priceTier) return false;
     if (vegOnly && !r.hasVegOptions) return false;
     return true;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "reviews") return b.reviewCount - a.reviewCount;
+    if (sortBy === "name") return a.name.localeCompare(b.name);
+    return b.rating - a.rating;
   });
 
   return (
@@ -187,30 +194,42 @@ export default function HomePage() {
       </section>
 
       {/* Results header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-sm text-gray-500">
-          <span className="font-semibold text-gray-800">{filtered.length}</span> restaurant{filtered.length !== 1 ? "s" : ""} found
+          <span className="font-semibold text-gray-800">{sorted.length}</span> restaurant{sorted.length !== 1 ? "s" : ""} found
         </p>
-        {(search || city !== "All Cities" || cuisine !== "All" || priceTier !== "All" || vegOnly || partySize > 0 || section !== "All") && (
-          <button
-            onClick={() => {
-              setSearch("");
-              setCity("All Cities");
-              setCuisine("All");
-              setPriceTier("All");
-              setVegOnly(false);
-              setPartySize(0);
-              setSection("All");
-            }}
-            className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+        <div className="flex items-center gap-3">
+          <select
+            aria-label="Sort restaurants"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "rating" | "reviews" | "name")}
+            className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400"
           >
-            Clear filters
-          </button>
-        )}
+            <option value="rating">Sort: Highest Rated</option>
+            <option value="reviews">Sort: Most Reviewed</option>
+            <option value="name">Sort: Name (A–Z)</option>
+          </select>
+          {(search || city !== "All Cities" || cuisine !== "All" || priceTier !== "All" || vegOnly || partySize > 0 || section !== "All") && (
+            <button
+              onClick={() => {
+                setSearch("");
+                setCity("All Cities");
+                setCuisine("All");
+                setPriceTier("All");
+                setVegOnly(false);
+                setPartySize(0);
+                setSection("All");
+              }}
+              className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Restaurant Grid */}
-      {filtered.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <p className="text-5xl mb-4">🔍</p>
           <p className="text-lg font-medium">No restaurants match your filters</p>
@@ -218,7 +237,7 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-          {filtered.map((r) => (
+          {sorted.map((r) => (
             <Link key={r.id} href={`/restaurants/${r.id}`}>
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden group cursor-pointer h-full flex flex-col">
                 {/* Cover */}
