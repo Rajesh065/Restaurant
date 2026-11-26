@@ -56,6 +56,7 @@ export default function OwnerPage() {
   // New menu item
   const [newItem, setNewItem] = useState({ name: "", description: "", price: 0, category: "", isVeg: true });
   const [itemSaved, setItemSaved] = useState(false);
+  const [menuSearch, setMenuSearch] = useState("");
 
   // New table
   const [newTable, setNewTable] = useState({ label: "", capacity: 2, section: "Indoor" as SeatingSection });
@@ -75,6 +76,11 @@ export default function OwnerPage() {
   }
 
   const menuItems = store.menuItems.filter((m) => m.restaurantId === selectedRestId);
+  const filteredMenuItems = menuItems.filter((m) => {
+    if (!menuSearch.trim()) return true;
+    const q = menuSearch.toLowerCase();
+    return m.name.toLowerCase().includes(q) || m.category.toLowerCase().includes(q);
+  });
   const tables = store.tables.filter((t) => t.restaurantId === selectedRestId);
   const reservations: Reservation[] = store.reservations.filter((r) => r.restaurantId === selectedRestId);
 
@@ -315,12 +321,25 @@ export default function OwnerPage() {
             </div>
           </div>
 
+          {/* Menu search */}
+          <div className="mb-4 max-w-2xl">
+            <input
+              type="text"
+              placeholder="Filter menu items by name or category…"
+              value={menuSearch}
+              onChange={(e) => setMenuSearch(e.target.value)}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+
           {/* Menu list */}
           <div className="space-y-2">
-            {menuItems.length === 0 && (
-              <p className="text-gray-400 text-sm py-4 text-center">No menu items yet.</p>
+            {filteredMenuItems.length === 0 && (
+              <p className="text-gray-400 text-sm py-4 text-center">
+                {menuItems.length === 0 ? "No menu items yet." : "No menu items match your search."}
+              </p>
             )}
-            {menuItems.map((item) => (
+            {filteredMenuItems.map((item) => (
               <div key={item.id} className="bg-white rounded-lg border border-gray-200 px-4 py-3 flex items-center gap-3">
                 <div className={`w-3 h-3 rounded-full flex-shrink-0 ${item.isVeg ? "bg-green-500" : "bg-red-500"}`} />
                 <div className="flex-1 min-w-0">
