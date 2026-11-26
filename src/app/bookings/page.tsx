@@ -29,6 +29,7 @@ export default function BookingsPage() {
   const [emailFilter, setEmailFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   if (!store) return <div className="text-center py-20 text-gray-400">Loading…</div>;
 
@@ -60,6 +61,14 @@ export default function BookingsPage() {
     const updated = cancelReservation(store!, id);
     setStore(updated);
     setConfirmCancel(null);
+  }
+
+  function handleCopyRef(id: string) {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(id).catch(() => {});
+    }
+    setCopiedId(id);
+    setTimeout(() => setCopiedId((prev) => (prev === id ? null : prev)), 1500);
   }
 
   const canCancel = (r: Reservation) =>
@@ -127,6 +136,14 @@ export default function BookingsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="font-mono text-sm font-bold text-orange-600">{res.id}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyRef(res.id)}
+                          className="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:text-orange-600 hover:border-orange-300 transition-colors"
+                          title="Copy reference code"
+                        >
+                          {copiedId === res.id ? "Copied!" : "Copy"}
+                        </button>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[res.status]}`}>
                           {STATUS_ICONS[res.status]} {res.status}
                         </span>
