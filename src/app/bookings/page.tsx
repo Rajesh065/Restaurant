@@ -28,6 +28,7 @@ export default function BookingsPage() {
   const [store, setStore] = useState<DineEaseStore>(() => loadStore());
   const [emailFilter, setEmailFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Completed" | "Cancelled">("All");
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -37,6 +38,9 @@ export default function BookingsPage() {
   const getTable = (id: string) => store.tables.find((t) => t.id === id);
 
   const myReservations: Reservation[] = store.reservations.filter((r) => {
+    if (statusFilter === "Active" && !["Confirmed", "Checked In", "Seated"].includes(r.status)) return false;
+    if (statusFilter === "Completed" && r.status !== "Completed") return false;
+    if (statusFilter === "Cancelled" && r.status !== "Cancelled" && r.status !== "No Show") return false;
     if (emailFilter && !r.guestEmail.toLowerCase().includes(emailFilter.toLowerCase())) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -83,21 +87,38 @@ export default function BookingsPage() {
       </div>
 
       {/* Search / Filter */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm flex flex-col sm:flex-row gap-3">
-        <input
-          type="text"
-          placeholder="Search by reference code, name, or restaurant…"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-        <input
-          type="email"
-          placeholder="Filter by email address…"
-          value={emailFilter}
-          onChange={(e) => setEmailFilter(e.target.value)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            placeholder="Search by reference code, name, or restaurant…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+          <input
+            type="email"
+            placeholder="Filter by email address…"
+            value={emailFilter}
+            onChange={(e) => setEmailFilter(e.target.value)}
+            className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(["All", "Active", "Completed", "Cancelled"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setStatusFilter(tab)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                statusFilter === tab
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
       {sorted.length === 0 ? (
